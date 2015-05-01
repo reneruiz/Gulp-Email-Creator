@@ -8,10 +8,9 @@ var inline = require('gulp-mc-inline-css');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var inlinesource = require('gulp-inline-source');
+var sendmail = require('gulp-mailgun');
 var util = require('gulp-util');
-var nodemailer = require('nodemailer');
 var fs = require('fs');
-var html_strip = require('htmlstrip-native');
 
 // Include the config
 var config = require('./config.json');
@@ -57,60 +56,16 @@ gulp.task('watch', function() {
 // Default Task
 gulp.task('default', ['sass', 'browser-sync', 'build', 'watch']);
 
-// Add ability to send test emails
 gulp.task('send', function () {
-    return sendEmail(util.env.template, config.testing.to);
+  gulp.src( 'dist/' + util.env.template)
+  .pipe(sendmail({
+    key: config.mailgun.api_key,
+    sender: config.mailgun.sender,
+    recipient: config.mailgun.recipient,
+    subject: 'This is a test email'
+  }));
 });
 
 gulp.task('litmus', function () {
     return sendEmail(util.env.template, config.litmus);
 });
-
-function sendEmail(template, recipient) {
-    try {
-
-        var options = {
-            include_script : false,
-            include_style : false,
-            compact_whitespace : true,
-            include_attributes : { 'alt': true }
-        };
-
-        var templatePath = "./output/" + template;
-
-        var transporter = nodemailer.createTransport({
-            service: 'Mailgun',
-            auth: {
-                user: config.auth.mailgun.user,
-                pass: config.auth.mailgun.pass
-            }
-        });
-
-        var templateContent = fs.readFileSync(templatePath, encoding = "utf8");
-
-        var mailOptions = {
-            from: config.testing.from, // sender address
-            to: recipient, // list of receivers
-            subject: config.testing.subject + ' - ' + template, // Subject line
-            html: templateContent, // html body
-            text: html_strip.html_strip(templateContent, options)
-        };
-
-        transporter.sendMail(mailOptions, function(error, info){
-            if(error){
-                return util.log(error);
-            }else{
-                return util.log('Message sent: ' + info.response);
-            }
-        });
-
-    } catch (e) {
-        if(e.code == 'ENOENT') {
-            util.log('There was an error. Check your template name to make sure it exists in ./output');
-        } else if(e instanceof TypeError) {
-            util.log('There was an error. Please check your config.json to make sure everything is spelled correctly');
-        } else {
-            util.log(e);
-        }
-    }
-}
