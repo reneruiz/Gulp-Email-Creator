@@ -6,6 +6,7 @@ var inline = require('gulp-mc-inline-css');
 var browserSync = require('browser-sync');
 var inlinesource = require('gulp-inline-source');
 var sendmail = require('gulp-mailgun');
+var litmus = require('gulp-litmus');
 var util = require('gulp-util');
 var fs = require('fs');
 
@@ -50,7 +51,7 @@ gulp.task('watch', function() {
 });
 
 gulp.task('send', function () {
-  gulp.src( 'dist/' + util.env.template)
+  gulp.src('dist/' + util.env.template)
   .pipe(sendmail({
     key: config.mailgun.api_key,
     sender: config.mailgun.sender,
@@ -63,5 +64,11 @@ gulp.task('send', function () {
 gulp.task('default', ['css', 'server', 'build', 'watch']);
 
 gulp.task('litmus', function () {
-    return sendEmail(util.env.template, config.litmus);
+  gulp.src('dist/' + util.env.template)
+      .pipe(litmus({
+        username: config.litmus.username,
+        password: config.litmus.password,
+        url: config.litmus.url,
+        applications: config.litmus.clients
+      }));
 });

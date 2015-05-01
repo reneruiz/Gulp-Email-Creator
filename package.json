@@ -27,6 +27,7 @@
     "gulp-inline-source": "^1.1.0",
     "gulp-mc-inline-css": "^0.1.6",
     "gulp-mailgun": "0.0.4",
+    "gulp-litmus": "0.0.7",
     "gulp-sass": "^1.2.4",
     "gulp-util": "^3.0.3",
     "tiny-lr": "0.1.4"
